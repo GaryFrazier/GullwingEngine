@@ -1,8 +1,8 @@
 #include "graphicsApiManager.h"
+#include "util/logger.h"
 
 #include <GLFW/glfw3.h>
 #include <stdexcept>
-#include <iostream>
 
 void GraphicsApiManager::init(AppInfo* appInfo) {
 	this->createInstance(appInfo);
@@ -36,7 +36,7 @@ void GraphicsApiManager::createInstance(AppInfo* appInfo) {
         throw std::runtime_error("failed to create instance!");
     }
 
-    std::cout << "graphics instance created: VULKAN";
+    logMessage("graphics instance created: VULKAN");
 #endif // USE_VULKAN   
 }
 

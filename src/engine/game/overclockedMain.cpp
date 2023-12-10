@@ -1,8 +1,5 @@
 #include "overclockedMain.h"
-
-#include <cstdlib>
-#include <iostream>
-#include <stdexcept>
+#include "engine/util/logger.h"
 
 void OverclockedMain::run(AppInfo* appInfo) {
     initWindow(appInfo);
@@ -12,12 +9,16 @@ void OverclockedMain::run(AppInfo* appInfo) {
 }
 
 void OverclockedMain::initWindow(AppInfo* appInfo) {
+    logMessage("Initializing window...");
+
     WindowManager winManager;
     winManager.init(appInfo);
     this->windowManager = winManager;
 }
 
 void OverclockedMain::initGraphicsApi(AppInfo* appInfo) {
+    logMessage("Initializing graphics api...");
+
     GraphicsApiManager apiManager;
     apiManager.init(appInfo);
     this->graphicsApiManager = apiManager;
