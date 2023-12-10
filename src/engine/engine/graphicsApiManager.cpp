@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 #include <stdexcept>
+#include <vector>
 
 void GraphicsApiManager::init(AppInfo* appInfo) {
 	this->createInstance(appInfo);
@@ -32,7 +33,21 @@ void GraphicsApiManager::createInstance(AppInfo* appInfo) {
 
     createInfo.enabledLayerCount = 0;
 
+    // check extension info, not used atm
+    uint32_t extensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+    std::vector<VkExtensionProperties> extensions(extensionCount);
+
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+
+    logMessage("available vulkan extensions:", LOG_LEVEL::INFO);
+
+    for (const auto& extension : extensions) {
+        logMessage(extension.extensionName, LOG_LEVEL::INFO);
+    }
+
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+        logMessage("failed to create instance!", LOG_LEVEL::ERROR);
         throw std::runtime_error("failed to create instance!");
     }
 
