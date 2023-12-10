@@ -2,11 +2,15 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "engine/appInfo.h"
+
 int main() {
     OverclockedMain app;
+    AppInfo appInfo{};
+    appInfo.applicationName = "Overclocked";
 
     try {
-        app.run();
+        app.run(&appInfo);
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

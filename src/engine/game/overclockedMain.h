@@ -1,18 +1,20 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-
-#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
+
+#include "engine/appInfo.h"
+#include "engine/graphicsApiManager.h"
+#include "engine/windowManager.h"
 
 class OverclockedMain {
 public:
-    void run();
+    void run(AppInfo* appInfo);
 
 private:
-    GLFWwindow* window;
+    WindowManager windowManager;
+    GraphicsApiManager graphicsApiManager;
 
-    void initWindow();
-    void initVulkan();
+    void initWindow(AppInfo* appInfo);
+    void initGraphicsApi(AppInfo* appInfo);
     void mainLoop();
     void cleanup();
 };

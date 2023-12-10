@@ -1,41 +1,37 @@
 #include "overclockedMain.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
-
-void OverclockedMain::run() {
-    initWindow();
-    initVulkan();
+void OverclockedMain::run(AppInfo* appInfo) {
+    initWindow(appInfo);
+    initGraphicsApi(appInfo);
     mainLoop();
     cleanup();
 }
 
-void OverclockedMain::initWindow() {
-    glfwInit();
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-    this->window = glfwCreateWindow(WIDTH, HEIGHT, "Overclocked", nullptr, nullptr);
+void OverclockedMain::initWindow(AppInfo* appInfo) {
+    WindowManager winManager;
+    winManager.init(appInfo);
+    this->windowManager = winManager;
 }
 
-void OverclockedMain::initVulkan() {
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-    std::cout << extensionCount << " extensions supported\n";
+void OverclockedMain::initGraphicsApi(AppInfo* appInfo) {
+    GraphicsApiManager apiManager;
+    apiManager.init(appInfo);
+    this->graphicsApiManager = apiManager;
 }
 
 void OverclockedMain::mainLoop() {
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+    bool exit = false;
+
+    while (!exit) {
+        exit = this->windowManager.poll();
     }
 }
 
 void OverclockedMain::cleanup() {
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    this->graphicsApiManager.cleanup();
+    this->windowManager.cleanup();
 }
