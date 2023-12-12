@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include "engine/appInfo.h"
-#include "engine/graphicsApiManager.h"
+#include "engine/graphics/graphicsApiManager.h"
 #include "engine/windowManager.h"
 
 class OverclockedMain {

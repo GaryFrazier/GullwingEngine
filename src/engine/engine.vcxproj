@@ -140,7 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="engine\graphicsApiManager.cpp" />
+    <ClCompile Include="engine\graphics\graphicsApiManager.cpp" />
     <ClCompile Include="engine\util\logger.cpp" />
     <ClCompile Include="engine\windowManager.cpp" />
     <ClCompile Include="game\overclockedMain.cpp" />
@@ -148,7 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\appInfo.h" />
-    <ClInclude Include="engine\graphicsApiManager.h" />
+    <ClInclude Include="engine\graphics\graphicsApiManager.h" />
     <ClInclude Include="engine\util\logger.h" />
     <ClInclude Include="engine\windowManager.h" />
     <ClInclude Include="game\overclockedMain.h" />
