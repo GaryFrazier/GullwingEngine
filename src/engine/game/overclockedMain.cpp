@@ -11,16 +11,16 @@ void OverclockedMain::run(AppInfo* appInfo) {
 void OverclockedMain::initWindow(AppInfo* appInfo) {
     logMessage("Initializing window...");
 
-    WindowManager winManager;
-    winManager.init(appInfo);
+    WindowManager* winManager = new WindowManager();
+    winManager->init(appInfo);
     this->windowManager = winManager;
 }
 
 void OverclockedMain::initGraphicsApi(AppInfo* appInfo) {
     logMessage("Initializing graphics api...");
 
-    GraphicsApiManager apiManager;
-    apiManager.init(appInfo);
+    GraphicsApiManager* apiManager = new GraphicsApiManager();
+    apiManager->init(appInfo, this->windowManager);
     this->graphicsApiManager = apiManager;
 }
 
@@ -28,11 +28,11 @@ void OverclockedMain::mainLoop() {
     bool exit = false;
 
     while (!exit) {
-        exit = this->windowManager.poll();
+        exit = this->windowManager->poll();
     }
 }
 
 void OverclockedMain::cleanup() {
-    this->graphicsApiManager.cleanup();
-    this->windowManager.cleanup();
+    this->graphicsApiManager->cleanup();
+    this->windowManager->cleanup();
 }

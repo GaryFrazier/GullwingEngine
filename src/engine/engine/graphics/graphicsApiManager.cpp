@@ -1,11 +1,11 @@
 #include "graphicsApiManager.h"
 #include "../util/logger.h"
 
-#include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <vector>
 #include <string>
 #include <format>
+#include <set>
 
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
@@ -31,9 +31,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     return VK_FALSE;
 }
 
-void GraphicsApiManager::init(AppInfo* appInfo) {
+void GraphicsApiManager::init(AppInfo* appInfo, WindowManager* windowManager) {
 	this->createInstance(appInfo);
     this->setupDebugMessenger();
+    this->createSurface(windowManager->window);
     this->pickPhysicalDevice();
     this->createLogicalDevice();
 }
@@ -91,7 +92,7 @@ void GraphicsApiManager::createInstance(AppInfo* appInfo) {
     }
 
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-        logMessage("failed to create instance!", LOG_LEVEL::ERROR);
+        logMessage("failed to create instance!", LOG_LEVEL::ERR);
         throw std::runtime_error("failed to create instance!");
     }
 
@@ -225,6 +226,13 @@ QueueFamilyIndices GraphicsApiManager::findQueueFamilies(VkPhysicalDevice device
             indices.graphicsFamily = i;
         }
 
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, this->surface, &presentSupport);
+
+        if (presentSupport) {
+            indices.presentFamily = i;
+        }
+
         if (indices.isComplete()) {
             break;
         }
@@ -237,21 +245,27 @@ QueueFamilyIndices GraphicsApiManager::findQueueFamilies(VkPhysicalDevice device
 
 void GraphicsApiManager::createLogicalDevice() {
     QueueFamilyIndices indices = this->findQueueFamilies(physicalDevice);
-
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-    queueCreateInfo.queueCount = 1;
+    
 
     float queuePriority = 1.0f;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     VkDeviceCreateInfo createInfo{};
 
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = 1;
     createInfo.pEnabledFeatures = &deviceFeatures;
     createInfo.enabledExtensionCount = 0;
 
@@ -268,7 +282,14 @@ void GraphicsApiManager::createLogicalDevice() {
     }
 
     vkGetDeviceQueue(this->logicalDevice, indices.graphicsFamily.value(), 0, &this->graphicsQueue);
+    vkGetDeviceQueue(this->logicalDevice, indices.presentFamily.value(), 0, &this->presentQueue);
     logMessage("Logical device created");
+}
+
+void GraphicsApiManager::createSurface(GLFWwindow* window) {
+    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
 }
 
 void GraphicsApiManager::cleanup() {
@@ -278,5 +299,6 @@ void GraphicsApiManager::cleanup() {
         this->DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
 
+    vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
     vkDestroyInstance(this->instance, nullptr);
 }

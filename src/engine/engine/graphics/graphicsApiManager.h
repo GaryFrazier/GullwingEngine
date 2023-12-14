@@ -1,23 +1,23 @@
 #pragma once
 #include "../appInfo.h"
+#include "engine/windowManager.h"
 
 #include <vector>
 #include <optional>
-
-#define GLFW_INCLUDE_VULKAN
 #include <vulkan/vulkan.h>
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
 
     bool isComplete() {
-        return graphicsFamily.has_value();
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
 class GraphicsApiManager {
 public:
-    void init(AppInfo* appInfo);
+    void init(AppInfo* appInfo, WindowManager* windowManager);
     void cleanup();
 private:
     VkInstance instance;
@@ -26,9 +26,12 @@ private:
     VkPhysicalDeviceProperties physicalDeviceProperties;
     VkDevice logicalDevice;
     VkQueue graphicsQueue;
+    VkSurfaceKHR surface;
+    VkQueue presentQueue;
 
     void createInstance(AppInfo* appInfo);
     void setupDebugMessenger();
+    void createSurface(GLFWwindow* window);
     void pickPhysicalDevice();
     void createLogicalDevice();
     bool checkValidationLayerSupport();

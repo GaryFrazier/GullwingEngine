@@ -28,7 +28,7 @@ void logMessage(const char* message, LOG_LEVEL logLevel) {
 		case LOG_LEVEL::WARNING:
 			colorCode = yellow;
 			break;
-		case LOG_LEVEL::ERROR:
+		case LOG_LEVEL::ERR:
 			colorCode = red;
 			break;
 
