@@ -35,6 +35,7 @@ void GraphicsApiManager::init(AppInfo* appInfo) {
 	this->createInstance(appInfo);
     this->setupDebugMessenger();
     this->pickPhysicalDevice();
+    this->createLogicalDevice();
 }
 
 void GraphicsApiManager::createInstance(AppInfo* appInfo) {
@@ -173,15 +174,6 @@ void GraphicsApiManager::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDe
     }
 }
 
-
-void GraphicsApiManager::cleanup() {
-    if (enableValidationLayers) {
-        this->DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    }
-
-    vkDestroyInstance(this->instance, nullptr);
-}
-
 void GraphicsApiManager::pickPhysicalDevice() {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(this->instance, &deviceCount, nullptr);
@@ -241,4 +233,50 @@ QueueFamilyIndices GraphicsApiManager::findQueueFamilies(VkPhysicalDevice device
     }
 
     return indices;
+}
+
+void GraphicsApiManager::createLogicalDevice() {
+    QueueFamilyIndices indices = this->findQueueFamilies(physicalDevice);
+
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+
+    float queuePriority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    VkPhysicalDeviceFeatures deviceFeatures{};
+    VkDeviceCreateInfo createInfo{};
+
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+    createInfo.pEnabledFeatures = &deviceFeatures;
+    createInfo.enabledExtensionCount = 0;
+
+    if (enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.ppEnabledLayerNames = validationLayers.data();
+    }
+    else {
+        createInfo.enabledLayerCount = 0;
+    }
+
+    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &this->logicalDevice) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create logical device!");
+    }
+
+    vkGetDeviceQueue(this->logicalDevice, indices.graphicsFamily.value(), 0, &this->graphicsQueue);
+    logMessage("Logical device created");
+}
+
+void GraphicsApiManager::cleanup() {
+    vkDestroyDevice(this->logicalDevice, nullptr);
+
+    if (enableValidationLayers) {
+        this->DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+    }
+
+    vkDestroyInstance(this->instance, nullptr);
 }

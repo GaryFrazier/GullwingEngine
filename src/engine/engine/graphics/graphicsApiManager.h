@@ -24,10 +24,13 @@ private:
     VkDebugUtilsMessengerEXT debugMessenger;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties physicalDeviceProperties;
+    VkDevice logicalDevice;
+    VkQueue graphicsQueue;
 
     void createInstance(AppInfo* appInfo);
     void setupDebugMessenger();
     void pickPhysicalDevice();
+    void createLogicalDevice();
     bool checkValidationLayerSupport();
     bool isDeviceSuitable(VkPhysicalDevice device);
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
