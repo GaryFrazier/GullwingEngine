@@ -4,7 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <vector>
-
+#include <string>
+#include <format>
 
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
@@ -33,6 +34,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 void GraphicsApiManager::init(AppInfo* appInfo) {
 	this->createInstance(appInfo);
     this->setupDebugMessenger();
+    this->pickPhysicalDevice();
 }
 
 void GraphicsApiManager::createInstance(AppInfo* appInfo) {
@@ -174,8 +176,69 @@ void GraphicsApiManager::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDe
 
 void GraphicsApiManager::cleanup() {
     if (enableValidationLayers) {
-       // this->DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+        this->DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
 
     vkDestroyInstance(this->instance, nullptr);
+}
+
+void GraphicsApiManager::pickPhysicalDevice() {
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(this->instance, &deviceCount, nullptr);
+
+    if (deviceCount == 0) {
+        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    }
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+    for (const auto& device : devices) {
+        if (this->isDeviceSuitable(device)) {
+            // possible device selection here!
+            this->physicalDevice = device;
+
+            // get properties of the device, set to class variable
+            vkGetPhysicalDeviceProperties(device, &physicalDeviceProperties);
+            break;
+        }
+    }
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        throw std::runtime_error("failed to find a suitable GPU!");
+    }
+
+    std::string deviceNameMessage = std::format("Physical device selected: {0}", this->physicalDeviceProperties.deviceName);
+    logMessage(deviceNameMessage.c_str());
+}
+
+bool GraphicsApiManager::isDeviceSuitable(VkPhysicalDevice device) {
+    QueueFamilyIndices indices = this->findQueueFamilies(device);
+
+    return indices.isComplete();
+}
+
+QueueFamilyIndices GraphicsApiManager::findQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        if (indices.isComplete()) {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
 }
