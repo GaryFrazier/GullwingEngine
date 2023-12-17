@@ -39,6 +39,7 @@ private:
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+    std::vector<VkImageView> swapChainImageViews;
 
     void createInstance(AppInfo* appInfo);
     void setupDebugMessenger();
@@ -47,6 +48,8 @@ private:
     void createLogicalDevice();
     bool checkValidationLayerSupport();
     void createSwapChain(GLFWwindow* window);
+    void createImageViews();
+
     bool isDeviceSuitable(VkPhysicalDevice device);
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
